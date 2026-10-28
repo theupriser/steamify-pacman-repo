@@ -30,6 +30,7 @@ Then `pacman -Sy steamify-gamescope-nvidia`.
 | `steamify-gamescope-nvidia` | the newest release of [steamify-gamescope-nvidia](https://github.com/theupriser/steamify-gamescope-nvidia) (per CPU variant) | Steamify's SteamOS conversion on NVIDIA |
 | `steamify-python-hid-shim` | `packages/` (any) | Steamify, on PCs that keep `python-hidapi` |
 | `steamify-cros-ec-cec-dkms` | `packages/` (any): Valve's `cros-ec-cec.c` plus Steamify's single-port patch | the Steam Machine's HDMI-CEC (Steamify does not install it from here yet) |
+| `steamify-leds-valve-dkms` | `packages/` (any): Valve's LED bar driver, packaged by Adam Honse ([leds-valve-dkms](https://gitlab.com/CalcProgrammer1/leds-valve-dkms), GPL-2.0-only), pinned; replaces the AUR `leds-valve-dkms-git` | the Steam Machine's front LED bar (Steamify installs it from the AUR today) |
 | `steamify-fremont-poweroff-dkms` | `packages/` (any) | the Steam Machine's power-off fix (same) |
 
 Architecture-independent packages are in every variant's database.
