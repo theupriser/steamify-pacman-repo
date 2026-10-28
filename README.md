@@ -25,7 +25,7 @@ Then `pacman -Sy steamify-gamescope-nvidia`.
 
 ## Add a package
 
-Add `<GitHub repo> <package name>` to `sources.txt`. That repository's releases must carry
+A package built here: a folder `packages/<name>/` with its PKGBUILD (architecture-independent only; it goes into every variant). Otherwise add `<GitHub repo> <package name>` to `sources.txt`. That repository's releases must carry
 `<package>-<version>-<variant>.pkg.tar.zst` and a `.sha256` for each variant, as steamify-gamescope-nvidia's do.
 
 ## Setup of this repository

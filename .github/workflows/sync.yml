@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: [sources.txt, scripts/sync.sh, .github/workflows/sync.yml]
+    paths: [sources.txt, packages/**, scripts/sync.sh, .github/workflows/sync.yml]
 
 permissions:
   contents: write
@@ -23,12 +23,26 @@ jobs:
       image: archlinux:latest
     steps:
       - name: Tools
-        run: pacman -Syu --noconfirm --needed github-cli gnupg git
+        run: pacman -Syu --noconfirm --needed github-cli gnupg git base-devel
 
       - uses: actions/checkout@v4
 
+      - name: Build packages/
+        run: |
+          useradd -m builder
+          mkdir -p /tmp/local-pkgs
+          for d in packages/*/; do
+              [ -f "$d/PKGBUILD" ] || continue
+              rm -rf /home/builder/b && mkdir /home/builder/b && cp -r "$d"/. /home/builder/b/
+              chown -R builder:builder /home/builder/b
+              runuser -u builder -- bash -c 'cd ~/b && makepkg -f --noconfirm'
+              cp /home/builder/b/*.pkg.tar.zst /tmp/local-pkgs/
+          done
+          ls -l /tmp/local-pkgs
+
       - name: Sync
         env:
+          LOCAL_PKGS: /tmp/local-pkgs
           GH_TOKEN: ${{ github.token }}
           GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
         run: |
