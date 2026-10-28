@@ -47,8 +47,10 @@ while read -r src pkg; do
 
         up=("$d/$file" "$d/$file.sig")
         for ext in db files; do
-            cp -L "$d/steamify-$v.$ext.tar.zst" "$d/steamify-$v.$ext"
-            cp -L "$d/steamify-$v.$ext.tar.zst.sig" "$d/steamify-$v.$ext.sig"
+            # repo-add leaves symlinks (steamify-v3.db -> .db.tar.zst); release assets are plain files
+            rm -f "$d/steamify-$v.$ext" "$d/steamify-$v.$ext.sig"
+            cp "$d/steamify-$v.$ext.tar.zst" "$d/steamify-$v.$ext"
+            cp "$d/steamify-$v.$ext.tar.zst.sig" "$d/steamify-$v.$ext.sig"
             up+=("$d/steamify-$v.$ext" "$d/steamify-$v.$ext.sig")
         done
         gh release upload "$TAG" "${up[@]}" --clobber
