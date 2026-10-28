@@ -1,0 +1,29 @@
+# Maintainer: theupriser
+# Valve's cros_ec_cec driver (HDMI-CEC on the Steam Machine) as a DKMS module, with Steamify's single-port patch.
+# cros-ec-cec.c is Valve's file from evlaV/linux-integration at 10c8c8800ccd3ae359203b4eefb6479f613b3b8e
+# (drivers/media/cec/platform/cros-ec/), GPL-2.0+; the same file Steamify's patches/ carries, pinned by checksum.
+pkgname=steamify-cros-ec-cec-dkms
+_dkms=steamify-cros-ec-cec
+pkgver=1
+pkgrel=1
+pkgdesc="Steam Machine HDMI-CEC driver (Valve's cros_ec_cec, DKMS)"
+arch=(any)
+url=https://github.com/theupriser/steamify-pacman-repo
+license=('GPL-2.0-or-later')
+depends=(dkms)
+source=(cros-ec-cec.c cros-ec-cec-single-port.patch dkms.conf)
+sha256sums=('e89fd4e87fceb32d713ffc59b64794779b3c2b3c012b0e2f2e9f0c40b42f4373' 'SKIP' 'SKIP')
+
+prepare() {
+  # makepkg links the sources into srcdir, and patch does not write through a link: a real copy first.
+  cp --remove-destination "$(readlink -f cros-ec-cec.c)" cros-ec-cec.c
+  # So it finds amdgpu's HDMI port.
+  patch -p1 -i cros-ec-cec-single-port.patch
+}
+
+package() {
+  local dir="$pkgdir/usr/src/$_dkms-$pkgver"
+  install -Dm644 cros-ec-cec.c "$dir/cros-ec-cec.c"
+  echo 'obj-m += cros-ec-cec.o' | install -Dm644 /dev/stdin "$dir/Makefile"
+  sed -e "s/@NAME@/$_dkms/g" -e "s/@VERSION@/$pkgver/g" dkms.conf | install -Dm644 /dev/stdin "$dir/dkms.conf"
+}

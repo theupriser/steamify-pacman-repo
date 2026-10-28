@@ -1,0 +1,21 @@
+# Maintainer: theupriser
+# Steam Machine (Fremont): power off instead of booting up again. A small module that clears the S4/S5 wake bit the
+# firmware leaves set, as Valve's kernel does (see the header of the source). Steamify's own, GPL-2.0.
+pkgname=steamify-fremont-poweroff-dkms
+_dkms=steamify-fremont-poweroff
+pkgver=1
+pkgrel=1
+pkgdesc='Steam Machine: stay powered off after shutting down (DKMS module)'
+arch=(any)
+url=https://github.com/theupriser/steamify-pacman-repo
+license=('GPL-2.0-only')
+depends=(dkms)
+source=(steamify-fremont-poweroff.c dkms.conf)
+sha256sums=('SKIP' 'SKIP')
+
+package() {
+  local dir="$pkgdir/usr/src/$_dkms-$pkgver"
+  install -Dm644 steamify-fremont-poweroff.c "$dir/steamify-fremont-poweroff.c"
+  echo "obj-m += $_dkms.o" | install -Dm644 /dev/stdin "$dir/Makefile"
+  sed -e "s/@NAME@/$_dkms/g" -e "s/@VERSION@/$pkgver/g" dkms.conf | install -Dm644 /dev/stdin "$dir/dkms.conf"
+}
