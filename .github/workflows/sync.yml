@@ -35,7 +35,7 @@ jobs:
               [ -f "$d/PKGBUILD" ] || continue
               rm -rf /home/builder/b && mkdir /home/builder/b && cp -r "$d"/. /home/builder/b/
               chown -R builder:builder /home/builder/b
-              runuser -u builder -- bash -c 'cd ~/b && makepkg -f --noconfirm'
+              runuser -u builder -- bash -c 'cd ~/b && makepkg -f --noconfirm --nodeps'
               cp /home/builder/b/*.pkg.tar.zst /tmp/local-pkgs/
           done
           ls -l /tmp/local-pkgs
