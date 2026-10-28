@@ -23,6 +23,17 @@ and in `/etc/pacman.conf`, **below** CachyOS's own repositories (so this one nev
 
 Then `pacman -Sy steamify-gamescope-nvidia`.
 
+## What is in it
+
+| Package | From | Used by |
+|---|---|---|
+| `steamify-gamescope-nvidia` | the newest release of [steamify-gamescope-nvidia](https://github.com/theupriser/steamify-gamescope-nvidia) (per CPU variant) | Steamify's SteamOS conversion on NVIDIA |
+| `steamify-python-hid-shim` | `packages/` (any) | Steamify, on PCs that keep `python-hidapi` |
+| `steamify-cros-ec-cec-dkms` | `packages/` (any): Valve's `cros-ec-cec.c` plus Steamify's single-port patch | the Steam Machine's HDMI-CEC (Steamify does not install it from here yet) |
+| `steamify-fremont-poweroff-dkms` | `packages/` (any) | the Steam Machine's power-off fix (same) |
+
+Architecture-independent packages are in every variant's database.
+
 ## Add a package
 
 A package built here: a folder `packages/<name>/` with its PKGBUILD (architecture-independent only; it goes into every variant). Otherwise add `<GitHub repo> <package name>` to `sources.txt`. That repository's releases must carry
