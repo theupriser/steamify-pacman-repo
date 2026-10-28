@@ -40,6 +40,13 @@ Architecture-independent packages are in every variant's database.
 A package built here: a folder `packages/<name>/` with its PKGBUILD (architecture-independent only; it goes into every variant). Otherwise add `<GitHub repo> <package name>` to `sources.txt`. That repository's releases must carry
 `<package>-<version>-<variant>.pkg.tar.zst` and a `.sha256` for each variant, as steamify-gamescope-nvidia's do.
 
+## Keeping it running
+
+The hourly schedule is switched off by GitHub after 60 days without repository activity; the last step of every run enables the
+workflow again to prevent that (not tried over 60 days yet: if the sync stops, start it once under Actions -> sync -> Run workflow).
+
+A DKMS package's `pkgver` is the DKMS version: when its source changes, bump `pkgver` (not only `pkgrel`), so DKMS rebuilds cleanly.
+
 ## Setup of this repository
 
 Secret `GPG_PRIVATE_KEY`: the armored private key of `KEY_FINGERPRINT` (no passphrase). The workflow refuses to run with another key.

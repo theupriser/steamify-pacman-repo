@@ -12,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: sync
@@ -48,3 +49,11 @@ jobs:
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           ./scripts/sync.sh
+
+      # GitHub switches scheduled workflows off after 60 days without activity in the repository. Enabling the workflow again
+      # (it is already on: a no-op for the workflow, but it counts as activity) keeps the hourly schedule running.
+      - name: Keep the schedule alive
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "/repos/$GITHUB_REPOSITORY/actions/workflows/sync.yml/enable" || echo "could not re-enable the workflow (not fatal)"
