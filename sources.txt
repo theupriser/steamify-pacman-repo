@@ -1,0 +1,3 @@
+# <GitHub repo> <package name>: the newest release of that repo is copied into the pacman repository (see scripts/sync.sh).
+# A release must carry <package>-<version>-<variant>.pkg.tar.zst and a .sha256 next to each, for variant generic, v3, v4 or znver4.
+theupriser/steamify-gamescope-nvidia steamify-gamescope-nvidia

@@ -1,0 +1,36 @@
+# Copies new releases of the repos in sources.txt into the pacman repository (a release of this repository tagged "repo").
+# Hourly, when sources.txt changes, or by hand (Actions -> sync -> Run workflow).
+name: sync
+
+on:
+  schedule:
+    - cron: '23 * * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [sources.txt, scripts/sync.sh, .github/workflows/sync.yml]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    steps:
+      - name: Tools
+        run: pacman -Syu --noconfirm --needed github-cli gnupg git
+
+      - uses: actions/checkout@v4
+
+      - name: Sync
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          ./scripts/sync.sh
