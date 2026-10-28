@@ -1,0 +1,21 @@
+# Maintainer: theupriser
+# The public key(s) that sign this repository's databases and packages, as a pacman keyring (like archlinux-keyring or Valve's holo-keyring):
+# installing or updating it runs `pacman-key --populate steamify`. A key change is then a package update: publish a keyring that ADDS the
+# new key (signed with the old one), wait until PCs have updated it, only then sign with the new key; revoke the old one in steamify-revoked.
+pkgname=steamify-keyring
+pkgver=20261028
+pkgrel=1
+pkgdesc="Steamify's pacman repository signing keys"
+arch=(any)
+url=https://github.com/theupriser/steamify-pacman-repo
+license=('GPL-2.0-only')
+depends=(pacman)
+install=steamify-keyring.install
+source=(steamify.gpg steamify-trusted steamify-revoked steamify-keyring.install)
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
+
+package() {
+  install -Dm644 steamify.gpg "$pkgdir/usr/share/pacman/keyrings/steamify.gpg"
+  install -Dm644 steamify-trusted "$pkgdir/usr/share/pacman/keyrings/steamify-trusted"
+  install -Dm644 steamify-revoked "$pkgdir/usr/share/pacman/keyrings/steamify-revoked"
+}

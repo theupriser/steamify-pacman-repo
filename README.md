@@ -31,6 +31,7 @@ Then `pacman -Sy steamify-gamescope-nvidia`.
 | `steamify-python-hid-shim` | `packages/` (any) | Steamify, on PCs that keep `python-hidapi` |
 | `steamify-cros-ec-cec-dkms` | `packages/` (any): Valve's `cros-ec-cec.c` plus Steamify's single-port patch | the Steam Machine's HDMI-CEC (Steamify does not install it from here yet) |
 | `steamify-leds-valve-dkms` | `packages/` (any): Valve's LED bar driver, DKMS packaging by Adam Honse, creator of [OpenRGB](https://openrgb.org) ([leds-valve-dkms](https://gitlab.com/CalcProgrammer1/leds-valve-dkms), GPL-2.0-only), copied here; replaces the AUR `leds-valve-dkms-git` | the Steam Machine's front LED bar (Steamify installs it from the AUR today) |
+| `steamify-keyring` | `packages/` (any): the signing key(s) as a pacman keyring (`steamify.gpg`, `steamify-trusted`, `steamify-revoked`) | every PC that lists the repository, so key changes arrive with `pacman -Syu` |
 | `steamify-fremont-poweroff-dkms` | `packages/` (any) | the Steam Machine's power-off fix (same) |
 
 Architecture-independent packages are in every variant's database.
@@ -46,6 +47,16 @@ The hourly schedule is switched off by GitHub after 60 days without repository a
 workflow again to prevent that (not tried over 60 days yet: if the sync stops, start it once under Actions -> sync -> Run workflow).
 
 A DKMS package's `pkgver` is the DKMS version: when its source changes, bump `pkgver` (not only `pkgrel`), so DKMS rebuilds cleanly.
+
+## Changing the signing key
+
+A PC that does not trust the key refuses the repository's database, and then `pacman -Syu` (and every `pacman -S`) fails for the whole system. So never
+sign with a key the PCs don't have yet:
+1. Make the new key; add it to `packages/steamify-keyring/steamify.gpg` and `steamify-trusted` (keep the old one); bump `pkgver`; publish (signed with the OLD key).
+2. Wait until PCs have updated the keyring (weeks, not days; `pacman -Syu` brings it).
+3. Switch `GPG_PRIVATE_KEY` and `KEY_FINGERPRINT` to the new key; the next sync signs everything with it.
+4. Later: put the old fingerprint in `steamify-revoked`, drop it from `steamify.gpg` and `steamify-trusted`.
+A leaked private key is the one case this cannot cover (revocation cert, then a Steamify release as a separate channel). Recovery for a PC: `steamify.sh --remove-repo`.
 
 ## Setup of this repository
 
