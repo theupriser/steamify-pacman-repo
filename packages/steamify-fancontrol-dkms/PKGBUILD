@@ -1,12 +1,14 @@
 # Maintainer: theupriser
-# Valve's steamdeck (MFD/EC) and steamdeck_hwmon (fan) drivers as one DKMS package: the Steam Machine's fan
-# monitoring and, with jupiter-fan-control, the OS fan control. Contributed by Toxican (theupriser/steamify-cachyos#140).
-# steamdeck.c and steamdeck_hwmon.c are Valve's files (GPL-2.0+, Copyright (C) 2021-2022 Valve Corporation) from
-# firlin123/steamdeck-dkms commit 99737c4, which follows Valve's linux-integration tree (evlaV/linux-integration);
-# SteamOS's own kernels (linux-neptune) ship both modules. If upstream changes, copy the new files, update the
-# checksums and bump pkgver.
+# Credit: Toxican (https://github.com/Toxican) found out what a Steam Machine (Fremont) needs for its fan, built and tested the
+# whole fan control module on a real one and contributed it (theupriser/steamify-cachyos#140, #141). firlin123
+# (https://github.com/firlin123) made steamdeck-dkms, the DKMS package of Valve's drivers these sources are the snapshot of.
+# The drivers themselves are Valve's: steamdeck.c and steamdeck_hwmon.c (GPL-2.0+, Copyright (C) 2021-2022 Valve Corporation),
+# from firlin123/steamdeck-dkms commit 99737c4, which follows Valve's linux-integration tree (evlaV/linux-integration);
+# SteamOS's own kernels (linux-neptune) ship both modules. If upstream changes, copy the new files, update the checksums and bump
+# pkgver. For the Steam Machine's fan monitoring and, with jupiter-fan-control, the OS fan control.
 # The Makefile and dkms.conf build only the modules the target kernel does not provide itself (CONFIG_MFD_STEAMDECK,
-# CONFIG_SENSORS_STEAMDECK): a kernel with both builds nothing (DKMS skips it, status 77).
+# CONFIG_SENSORS_STEAMDECK): a kernel with both builds nothing (DKMS skips it, status 77). dkms.conf leaves
+# BUILD_EXCLUSIVE_KERNEL unset when pacman's DKMS hook sources it without a kernel, so the hook builds for every kernel.
 pkgname=steamify-fancontrol-dkms
 _dkms=steamify-fancontrol
 pkgver=1
