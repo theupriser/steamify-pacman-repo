@@ -6,7 +6,7 @@
 set -euo pipefail
 
 TAG="${TAG:-repo}"
-KEEP="${KEEP:-2}"   # versions kept per package and variant, for downgrades
+KEEP="${KEEP:-20}"   # versions kept per package and variant, for downgrades (the files are small; the databases list only the newest)
 VARIANTS=(generic v3 v4 znver4)
 here="$(pwd)"
 work="$(mktemp -d)"
@@ -67,24 +67,45 @@ prune() {
 }
 
 changed=0
-while read -r src pkg; do
-    [[ -z "$src" || "$src" == \#* ]] && continue
-    srctag="$(gh release view --repo "$src" --json tagName --jq .tagName 2>/dev/null)" || { echo "$src: no release, skipped"; continue; }
-    gh release view --repo "$src" "$srctag" --json assets --jq '.assets[].name' > "$work/theirs"
+
+# fetch_release <source repo> <package name> <release tag> <newest|older>: the four CPU variants of one release of a source repo:
+# checked against their .sha256, signed, uploaded. Only the NEWEST release goes into the databases (a database lists one version per
+# package); an older one is an archive of files for `pacman -U <asset url>` (a downgrade, or a PC that needs the version it was set up
+# with), so repo-add never has to choose between versions.
+fetch_release() {
+    local src="$1" pkg="$2" tag="$3" kind="$4" v file d missing=0
+    # Everything already here: no call to the source repo (this runs every hour).
+    for v in "${VARIANTS[@]}"; do grep -qxF "$pkg-$tag-$v.pkg.tar.zst" "$work/ours" || missing=1; done
+    (( missing )) || { echo "$pkg $tag: already in the repository"; return 0; }
+    gh release view --repo "$src" "$tag" --json assets --jq '.assets[].name' > "$work/theirs"
     for v in "${VARIANTS[@]}"; do
-        file="$pkg-$srctag-$v.pkg.tar.zst"
-        grep -qxF "$file" "$work/theirs" || { echo "$src $srctag: no $v build, skipped"; continue; }
+        file="$pkg-$tag-$v.pkg.tar.zst"
+        grep -qxF "$file" "$work/theirs" || { echo "$src $tag: no $v build, skipped"; continue; }
         if grep -qxF "$file" "$work/ours"; then echo "$file: already in the repository"; continue; fi
 
         d="$work/$v"; mkdir -p "$d"
-        gh release download --repo "$src" "$srctag" -p "$file" -p "$file.sha256" -D "$d" --clobber
+        gh release download --repo "$src" "$tag" -p "$file" -p "$file.sha256" -D "$d" --clobber
         (cd "$d" && sha256sum -c "$file.sha256")
         sign "$d/$file"
         gh release upload "$TAG" "$d/$file" "$d/$file.sig" --clobber
-        db_add "$v" "$file" "$d"
+        [[ "$kind" == newest ]] && db_add "$v" "$file" "$d"
         changed=1
         prune "$pkg" "$v"
     done
+}
+
+while read -r src pkg; do
+    [[ -z "$src" || "$src" == \#* ]] && continue
+    srctag="$(gh release view --repo "$src" --json tagName --jq .tagName 2>/dev/null)" || { echo "$src: no release, skipped"; continue; }
+    # The older releases first (oldest to newest, drafts and prereleases left out), then the newest into the databases: a release
+    # that is deleted at its source stays here, since this repository is the archive.
+    mapfile -t older < <(gh release list --repo "$src" --limit 100 --json tagName,isDraft,isPrerelease,publishedAt \
+        --jq 'map(select((.isDraft|not) and (.isPrerelease|not)))|sort_by(.publishedAt)|.[].tagName' 2>/dev/null)
+    for tag in "${older[@]}"; do
+        [[ "$tag" == "$srctag" ]] && continue
+        fetch_release "$src" "$pkg" "$tag" older
+    done
+    fetch_release "$src" "$pkg" "$srctag" newest
 done < "$here/sources.txt"
 
 # Packages built in this repository (packages/<name>/PKGBUILD, built by the workflow into $LOCAL_PKGS): architecture-independent
