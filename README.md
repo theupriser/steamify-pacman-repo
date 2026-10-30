@@ -33,9 +33,17 @@ Then `pacman -Sy steamify-gamescope-nvidia`.
 | `steamify-leds-valve-dkms` | `packages/` (any): Valve's LED bar driver, DKMS packaging by Adam Honse, creator of [OpenRGB](https://openrgb.org) ([leds-valve-dkms](https://gitlab.com/CalcProgrammer1/leds-valve-dkms), GPL-2.0-only), copied here; replaces the AUR `leds-valve-dkms-git` | the Steam Machine's front LED bar (Steamify installs it from the AUR today) |
 | `steamify-keyring` | `packages/` (any): the signing key(s) as a pacman keyring (`steamify.gpg`, `steamify-trusted`, `steamify-revoked`) | every PC that lists the repository, so key changes arrive with `pacman -Syu` |
 | `steamify-fremont-poweroff-dkms` | `packages/` (any) | the Steam Machine's power-off fix (same) |
-| `steamify-fancontrol-dkms` | `packages/` (any): Valve's `steamdeck` and `steamdeck_hwmon` drivers, built only for kernels that lack them (SteamOS's kernels have them); contributed by Toxican | the Steam Machine's fan monitoring and OS fan control (with `jupiter-fan-control`) |
+| `steamify-fancontrol-dkms` | `packages/` (any): Valve's `steamdeck` and `steamdeck_hwmon` drivers, built only for kernels that lack them (SteamOS's kernels have them); contributed by [@Toxican](https://github.com/Toxican) | the Steam Machine's fan monitoring and OS fan control (with `jupiter-fan-control`) |
 
 Architecture-independent packages are in every variant's database.
+
+## Special thanks
+
+- **[@Toxican](https://github.com/Toxican)** - `steamify-fancontrol-dkms` and the Steam Machine fan monitoring and control it belongs to
+  ([steamify-cachyos#140](https://github.com/theupriser/steamify-cachyos/issues/140), #141): the research on a real Fremont, the DKMS Makefile and
+  `dkms.conf`, the provider handling and the tests behind it.
+- **Valve** - the `steamdeck` and `steamdeck_hwmon` drivers (GPL-2.0+, Copyright Valve Corporation) in that package, and the other Steam Machine drivers
+  this repository packages, published in [evlaV/linux-integration](https://github.com/evlaV/linux-integration).
 
 ## Add a package
 
