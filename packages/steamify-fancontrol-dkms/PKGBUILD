@@ -1,7 +1,7 @@
 # Maintainer: theupriser
 # Credit: Toxican (https://github.com/Toxican) found out what a Steam Machine (Fremont) needs for its fan, built and tested the
-# whole fan control module on a real one and contributed it (theupriser/steamify-cachyos#140, #141). firlin123
-# (https://github.com/firlin123) made steamdeck-dkms, the DKMS package of Valve's drivers these sources are the snapshot of.
+# whole fan control module on a real one and contributed it (theupriser/steamify-cachyos#140, #141), including this Makefile and
+# dkms.conf. The driver sources were taken from firlin123's steamdeck-dkms (https://github.com/firlin123/steamdeck-dkms).
 # The drivers themselves are Valve's: steamdeck.c and steamdeck_hwmon.c (GPL-2.0+, Copyright (C) 2021-2022 Valve Corporation),
 # from firlin123/steamdeck-dkms commit 99737c4, which follows Valve's linux-integration tree (evlaV/linux-integration);
 # SteamOS's own kernels (linux-neptune) ship both modules. If upstream changes, copy the new files, update the checksums and bump

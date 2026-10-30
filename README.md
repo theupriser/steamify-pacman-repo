@@ -33,7 +33,7 @@ Then `pacman -Sy steamify-gamescope-nvidia`.
 | `steamify-leds-valve-dkms` | `packages/` (any): Valve's LED bar driver, DKMS packaging by Adam Honse, creator of [OpenRGB](https://openrgb.org) ([leds-valve-dkms](https://gitlab.com/CalcProgrammer1/leds-valve-dkms), GPL-2.0-only), copied here; replaces the AUR `leds-valve-dkms-git` | the Steam Machine's front LED bar (Steamify installs it from the AUR today) |
 | `steamify-keyring` | `packages/` (any): the signing key(s) as a pacman keyring (`steamify.gpg`, `steamify-trusted`, `steamify-revoked`) | every PC that lists the repository, so key changes arrive with `pacman -Syu` |
 | `steamify-fremont-poweroff-dkms` | `packages/` (any) | the Steam Machine's power-off fix (same) |
-| `steamify-fancontrol-dkms` | `packages/` (any): Valve's `steamdeck` and `steamdeck_hwmon` drivers, built only for kernels that lack them (SteamOS's kernels have them); contributed by [Toxican](https://github.com/Toxican), DKMS package of the drivers by [firlin123](https://github.com/firlin123/steamdeck-dkms) | the Steam Machine's fan monitoring and OS fan control (with `jupiter-fan-control`) |
+| `steamify-fancontrol-dkms` | `packages/` (any): Valve's `steamdeck` and `steamdeck_hwmon` drivers, built only for kernels that lack them (SteamOS's kernels have them); contributed by [Toxican](https://github.com/Toxican), driver sources taken from [firlin123/steamdeck-dkms](https://github.com/firlin123/steamdeck-dkms) | the Steam Machine's fan monitoring and OS fan control (with `jupiter-fan-control`) |
 
 Architecture-independent packages are in every variant's database.
 
