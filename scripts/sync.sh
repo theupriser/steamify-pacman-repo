@@ -25,13 +25,10 @@ gh release view "$TAG" --json assets --jq '.assets[].name' | sort > "$work/ours"
 
 sign() { gpg --batch --yes --detach-sign --no-armor --local-user "$key" -o "$1.sig" "$1"; }
 
-# db_add <variant> <package file> <dir with the package and its .sig>: the package goes into that variant's database (an
-# older entry of the same package is replaced; repo-add reads the package inside, not its file name), and the database is uploaded.
-db_add() {
-    local v="$1" file="$2" d="$3" ext
-    for ext in db files; do gh release download "$TAG" -p "steamify-$v.$ext" -D "$d" --clobber 2>/dev/null \
-        && mv "$d/steamify-$v.$ext" "$d/steamify-$v.$ext.tar.zst" || true; done
-    (cd "$d" && repo-add --sign --key "$key" "steamify-$v.db.tar.zst" "$file")
+# db_publish <variant> <dir>: uploads the variant's database and file list from <dir> (repo-add and repo-remove leave them as
+# steamify-<v>.db.tar.zst; the release has plain files steamify-<v>.db).
+db_publish() {
+    local v="$1" d="$2" ext
     local -a up=()
     for ext in db files; do
         # repo-add leaves symlinks (steamify-v3.db -> .db.tar.zst); release assets are plain files
@@ -41,6 +38,22 @@ db_add() {
         up+=("$d/steamify-$v.$ext" "$d/steamify-$v.$ext.sig")
     done
     gh release upload "$TAG" "${up[@]}" --clobber
+}
+
+# db_fetch <variant> <dir>: the variant's database and file list from the release, as steamify-<v>.db.tar.zst (not there: nothing).
+db_fetch() {
+    local v="$1" d="$2" ext
+    for ext in db files; do gh release download "$TAG" -p "steamify-$v.$ext" -D "$d" --clobber 2>/dev/null \
+        && mv "$d/steamify-$v.$ext" "$d/steamify-$v.$ext.tar.zst" || true; done
+}
+
+# db_add <variant> <package file> <dir with the package and its .sig>: the package goes into that variant's database (an
+# older entry of the same package is replaced; repo-add reads the package inside, not its file name), and the database is uploaded.
+db_add() {
+    local v="$1" file="$2" d="$3"
+    db_fetch "$v" "$d"
+    (cd "$d" && repo-add --sign --key "$key" "steamify-$v.db.tar.zst" "$file")
+    db_publish "$v" "$d"
 }
 
 # prune <package name> <variant|any>: keep the newest $KEEP package files
@@ -89,5 +102,46 @@ if [[ -n "${LOCAL_PKGS:-}" && -d "$LOCAL_PKGS" ]]; then
         prune "$pkgname" any
     done
 fi
+
+# retire: a package that is neither in sources.txt nor in packages/ any more (renamed or dropped) leaves every database and its
+# files are deleted, so a rename does not leave a dead entry behind. Nothing is retired when the list of wanted packages is
+# empty (a broken sources.txt must not empty the repository), and not more than $RETIRE_MAX packages in one run.
+RETIRE_MAX="${RETIRE_MAX:-3}"
+retire() {
+    local v d f name
+    local -a keep=() gone=() all=()
+    while read -r src pkg; do [[ -z "$src" || "$src" == \#* ]] || keep+=("$pkg"); done < "$here/sources.txt"
+    for f in "$here"/packages/*/PKGBUILD; do
+        [[ -e "$f" ]] || continue
+        name="$(sed -n 's/^pkgname=//p' "$f" | head -n 1 | tr -d "\"'")"
+        [[ -n "$name" ]] && keep+=("$name")
+    done
+    (( ${#keep[@]} )) || { echo "retire: no wanted packages found, nothing retired" >&2; return 0; }
+    for v in "${VARIANTS[@]}"; do
+        d="$work/retire-$v"; mkdir -p "$d"
+        db_fetch "$v" "$d"
+        [[ -f "$d/steamify-$v.db.tar.zst" ]] || continue
+        # the entries are folders <name>-<pkgver>-<pkgrel>/
+        mapfile -t all < <(bsdtar -tf "$d/steamify-$v.db.tar.zst" | sed -n 's|^\(.*\)-[^-]*-[^-]*/desc$|\1|p' | sort -u)
+        gone=()
+        for name in "${all[@]}"; do
+            printf '%s\n' "${keep[@]}" | grep -qxF -- "$name" || gone+=("$name")
+        done
+        (( ${#gone[@]} )) || continue
+        (( ${#gone[@]} <= RETIRE_MAX )) || { echo "retire: $v would lose ${#gone[@]} packages (${gone[*]}), more than $RETIRE_MAX: not touching it" >&2; continue; }
+        echo "retire: $v database drops ${gone[*]}"
+        (cd "$d" && repo-remove --sign --key "$key" "steamify-$v.db.tar.zst" "${gone[@]}")
+        db_publish "$v" "$d"
+        changed=1
+    done
+    # their files, once no database lists them
+    for name in $(gh release view "$TAG" --json assets --jq '.assets[].name' | sed -n 's/^\(steamify-.*\)-[^-]*-[^-]*-[^-]*\.pkg\.tar\.zst$/\1/p' | sort -u); do
+        printf '%s\n' "${keep[@]}" | grep -qxF -- "$name" && continue
+        for f in $(gh release view "$TAG" --json assets --jq '.assets[].name' | grep -E "^$name-[^-]*-[^-]*-[^-]*\.pkg\.tar\.zst$"); do
+            echo "retire: deleting $f"; gh release delete-asset "$TAG" "$f" "$f.sig" -y 2>/dev/null || true
+        done
+    done
+}
+retire
 
 (( changed )) && echo "repository updated" || echo "nothing new"
