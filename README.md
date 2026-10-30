@@ -57,6 +57,17 @@ workflow again to prevent that (not tried over 60 days yet: if the sync stops, s
 
 A DKMS package's `pkgver` is the DKMS version: when its source changes, bump `pkgver` (not only `pkgrel`), so DKMS rebuilds cleanly.
 
+## Older versions
+
+Every release of a source repository is copied here, not only the newest, and the last 20 versions of each package (per CPU variant) are kept (`KEEP` in
+`scripts/sync.sh`; a release that is deleted at its source stays here). A pacman database lists one version per package, the newest, so an older
+one is installed from its file, which is signed like the rest (the key is already trusted when the repository is listed):
+
+    sudo pacman -U https://github.com/theupriser/steamify-pacman-repo/releases/download/repo/steamify-gamescope-nvidia-3.16.31-3-v3.pkg.tar.zst
+
+Why not keep everything for ever: GitHub allows 1000 files in one release (each version is a package and its signature, per variant: gamescope is 8), and a sync
+that runs into it would stop for every package. 20 versions is far from that and far longer than any upgrade path or downgrade needs.
+
 ## Changing the signing key
 
 A PC that does not trust the key refuses the repository's database, and then `pacman -Syu` (and every `pacman -S`) fails for the whole system. So never
