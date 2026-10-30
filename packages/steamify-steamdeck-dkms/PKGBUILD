@@ -1,0 +1,30 @@
+# Maintainer: theupriser
+# Valve's steamdeck (MFD/EC) and steamdeck_hwmon (fan) drivers as one DKMS package: the Steam Machine's fan
+# monitoring and, with jupiter-fan-control, the OS fan control. Contributed by Toxican (theupriser/steamify-cachyos#140).
+# steamdeck.c and steamdeck_hwmon.c are Valve's files (GPL-2.0+, Copyright (C) 2021-2022 Valve Corporation) from
+# firlin123/steamdeck-dkms commit 99737c4, which follows Valve's linux-integration tree (evlaV/linux-integration);
+# SteamOS's own kernels (linux-neptune) ship both modules. If upstream changes, copy the new files, update the
+# checksums and bump pkgver.
+# The Makefile and dkms.conf build only the modules the target kernel does not provide itself (CONFIG_MFD_STEAMDECK,
+# CONFIG_SENSORS_STEAMDECK): a kernel with both builds nothing (DKMS skips it, status 77).
+pkgname=steamify-steamdeck-dkms
+_dkms=steamify-steamdeck
+pkgver=1
+pkgrel=1
+pkgdesc="Steam Machine fan drivers (Valve's steamdeck and steamdeck_hwmon, DKMS)"
+arch=(any)
+url=https://github.com/theupriser/steamify-pacman-repo
+license=('GPL-2.0-or-later')
+depends=(dkms)
+source=(steamdeck.c steamdeck_hwmon.c Makefile dkms.conf)
+sha256sums=('c5bd4be144bbfc8833384eae795178cd308c8dcba0e593b387100361cba9c86c'
+            '54dbd7673f8b48b7f8737d5f1213e4863dc7a2a3b94de9b60ab4bb4a7b15290c'
+            'SKIP' 'SKIP')
+
+package() {
+  local dir="$pkgdir/usr/src/$_dkms-$pkgver"
+  install -Dm644 steamdeck.c "$dir/steamdeck.c"
+  install -Dm644 steamdeck_hwmon.c "$dir/steamdeck_hwmon.c"
+  install -Dm644 Makefile "$dir/Makefile"
+  sed -e "s/@NAME@/$_dkms/g" -e "s/@VERSION@/$pkgver/g" dkms.conf | install -Dm644 /dev/stdin "$dir/dkms.conf"
+}
