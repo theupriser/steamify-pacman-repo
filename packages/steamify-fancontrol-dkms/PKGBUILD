@@ -7,11 +7,11 @@
 # checksums and bump pkgver.
 # The Makefile and dkms.conf build only the modules the target kernel does not provide itself (CONFIG_MFD_STEAMDECK,
 # CONFIG_SENSORS_STEAMDECK): a kernel with both builds nothing (DKMS skips it, status 77).
-pkgname=steamify-steamdeck-dkms
-_dkms=steamify-steamdeck
+pkgname=steamify-fancontrol-dkms
+_dkms=steamify-fancontrol
 pkgver=1
 pkgrel=1
-pkgdesc="Steam Machine fan drivers (Valve's steamdeck and steamdeck_hwmon, DKMS)"
+pkgdesc="Steam Machine fan monitoring and control drivers (Valve's steamdeck and steamdeck_hwmon, DKMS)"
 arch=(any)
 url=https://github.com/theupriser/steamify-pacman-repo
 license=('GPL-2.0-or-later')
